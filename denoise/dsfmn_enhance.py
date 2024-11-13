@@ -175,10 +175,10 @@ class ANS(Task):
 
 
 
-# @click.command()
-# @click.option("--indir", type=str, required=True)
-# @click.option("--outdir", type=str, required=True)
-# @click.option("--debug/--no-debug", default=False)
+@click.command()
+@click.option("--indir", type=str, required=True)
+@click.option("--outdir", type=str, required=True)
+@click.option("--debug/--no-debug", default=False)
 def main(indir, outdir, debug=False):
     if debug:
         logger.remove()
@@ -188,8 +188,6 @@ def main(indir, outdir, debug=False):
     task.run()
 
 if __name__ == "__main__":
-
-    for wavdir in Path('/nas_dev/zio/audio_data/iris_data').iterdir():
-        main(wavdir.as_posix(), '/nas_dev/zio/audio_data/iris_enhanced')
+    main()
 
 
