@@ -11,10 +11,17 @@ from tqdm import tqdm
 from loguru import logger
 from nemo_text_processing.text_normalization.normalize import Normalizer
 from concurrent.futures import ProcessPoolExecutor, as_completed
-from auto_label_valid_duration import trim_silence
 from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline
 
+def trim_silence(wav):
+  """Trim leading and trailing silence
 
+  Useful for M-AILABS dataset if we choose to trim the extra 0.5 silence at beginning and end.
+  """
+  # Thanks @begeekmyfriend and @lautjy for pointing out the params contradiction. These params are separate and tunable per dataset.
+  return librosa.effects.trim(wav, top_db=35,
+                              frame_length=512,
+                              hop_length=128)[0]
 class Slicer:
     def __init__(self,
                  sr: int,
@@ -268,7 +275,7 @@ class Audio_Process():
             result = pipe(wav_dataset, generate_kwargs={"language":"english"})
             text = [item["text"] for item in result]
             assert(len(wav_dataset) == len(text))
-            with open('{}/transcript.txt'.format(wav_path), 'w') as f:
+            with open('{}/transcript.txt'.format(wav_path), 'a+') as f:
                 for fn, text in zip(wav_dataset, text):
                     text = self.normalizer.normalize(text, punct_post_process=False)
                     fn = fn.split('/')[-1]
@@ -288,14 +295,14 @@ class Audio_Process():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--audio_path', type=str)
-    parser.add_argument('--save_path', type=str)
+    parser.add_argument('--savepath', type=str)
     parser.add_argument("--audio_format", type=str, default='m4a')
     parser.add_argument("--target_sr", type=int)
     args = parser.parse_args()
     
     AP = Audio_Process()
-    AP.multi_audio_process(args.audio_path, args.save_path, args.target_sr)
-    AP.asr_batch(args.save_path)
+    #AP.multi_audio_process(args.audio_path, args.savepath, args.target_sr)
+    AP.asr_batch(args.savepath)
     
 
 
